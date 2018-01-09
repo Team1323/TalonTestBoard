@@ -23,12 +23,19 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public class Robot extends IterativeRobot {
 	private ArrayList<TestTalon> talons;
-	private ArrayList<SendableChooser<String>> sendableChoosers;
 	final int numberOfTalons = 16;
 	private final String FORWARD = "forward";
 	private final String REVERSE = "reverse";
 	private final String STOP = "stop";
 	Preferences prefs;
+	
+	public void initDashboard(){
+		talons = new ArrayList<TestTalon>(numberOfTalons);
+		for(int i=0; i<numberOfTalons; i++){
+			talons.add(new TestTalon(i));
+			System.out.println(i);
+		}
+	}
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -36,17 +43,7 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void robotInit() {
-		talons = new ArrayList<>(numberOfTalons);
-		for(int i=0; i<numberOfTalons; i++){
-			talons.add(new TestTalon(i));
-			sendableChoosers.add(new SendableChooser<>());
-			sendableChoosers.get(i).addDefault("Talon " + i + "stop", STOP);
-			sendableChoosers.get(i).addObject("Talon " + i + "forward", FORWARD);
-			sendableChoosers.get(i).addObject("Talon " + i + "reverse", REVERSE);
-			SmartDashboard.putData(sendableChoosers.get(i));
-		}
-		prefs = Preferences.getInstance();
-		int test = prefs.getInt("Test", 1);
+		initDashboard();
 	}
 	
 	@Override
@@ -59,13 +56,12 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void teleopInit(){
-		
 	}
 	
 	@Override
 	public void teleopPeriodic() {
 		for(TestTalon talon : talons){
-			String command = sendableChoosers.get(talon._id).getSelected();
+			String command = talon.chooser.getSelected();
 			switch(command){
 			case FORWARD:
 				talon.requestForward();
@@ -85,9 +81,11 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void disabledInit(){
-		for(TestTalon talon : talons){
-			talon.requestStop();
-			talon.execute();
+		if(talons != null){
+			for(TestTalon talon : talons){
+				talon.requestStop();
+				talon.execute();
+			}
 		}
 	}
 }
